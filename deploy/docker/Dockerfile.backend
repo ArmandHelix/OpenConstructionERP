@@ -1,33 +1,39 @@
 FROM python:3.12-slim AS base
 
+# 1. Rendszerfüggőségek telepítése
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# 2. Limitált jogosultságú felhasználó létrehozása
 RUN groupadd -r oe && useradd -r -g oe -d /app -s /sbin/nologin oe
 
 WORKDIR /app
 
-COPY backend/pyproject.toml backend/
+# 3. A projekt leírásának és a teljes backend mappának a bemásolása
+COPY README.md .
+COPY backend/ backend/
 
-# KIVETTÜK a "|| true" részt, így a Docker kénytelen újratelepíteni mindent a cache helyett!
+# 4. Telepítés (a || true eltávolítva, hogy valóban lefusson)
 RUN pip install --no-cache-dir ./backend && \
     pip install --no-cache-dir "ezdxf>=0.18.0"
 
-COPY backend/ backend/
-
+# 5. Jogosultságok átadása és felhasználóváltás
 RUN chown -R oe:oe /app
 USER oe
 
+# 6. A helyi Python binárisok (pl. uvicorn) hozzáadása a rendszer útvonalához
 ENV PATH="/app/.local/bin:${PATH}"
 
+# 7. Python optimalizációk
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 EXPOSE 8000
 
+# 8. Egészségügyi ellenőrzés (Healthcheck)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')" || exit 1
 
-# Közvetlenül a Pythonon keresztül indítjuk az Uvicornt, hogy biztosan megtalálja:
+# 9. A szerver indítása közvetlenül a Python modulon keresztül
 CMD ["python", "-m", "uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
