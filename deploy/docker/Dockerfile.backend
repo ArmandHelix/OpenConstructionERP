@@ -4,6 +4,8 @@ FROM python:3.12-slim AS base
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     curl \
+    gnupg2 \
+    # Beállítjuk a forrást és TELEPÍTJÜK a konvertert
     && echo 'deb [trusted=yes] https://pkg.datadrivenconstruction.io stable main' > /etc/apt/sources.list.d/ddc.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends ddc-ifcconverter \
