@@ -20,7 +20,7 @@ RUN mkdir -p /app/frontend/dist && \
 
 # 5. Telepítés (a || true eltávolítva, hogy valóban lefusson és ne a hibás cache-t használja)
 RUN pip install --no-cache-dir ./backend && \
-    pip install --no-cache-dir "ezdxf>=0.18.0"
+    pip install --no-cache-dir "ezdxf>=0.18.0" asyncpg
 
 # 6. Jogosultságok átadása és felhasználóváltás
 RUN chown -R oe:oe /app
