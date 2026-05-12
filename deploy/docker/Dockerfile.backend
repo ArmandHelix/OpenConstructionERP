@@ -18,12 +18,14 @@ COPY backend/ backend/
 RUN mkdir -p /app/frontend/dist && \
     touch /app/frontend/dist/index.html
 
-# 5. Telepítés (a || true eltávolítva, hogy valóban lefusson és ne a hibás cache-t használja)
+# 5. Telepítés (a || true eltávolítva, és az asyncpg hozzáadva)
 RUN pip install --no-cache-dir ./backend && \
     pip install --no-cache-dir "ezdxf>=0.18.0" asyncpg
 
-# 6. Jogosultságok átadása és felhasználóváltás
-RUN chown -R oe:oe /app
+# 6. Jogosultságok átadása (app mappa és locales mappa) majd felhasználóváltás
+RUN chown -R oe:oe /app && \
+    mkdir -p /usr/local/lib/python3.12/site-packages/locales && \
+    chown -R oe:oe /usr/local/lib/python3.12/site-packages/locales
 USER oe
 
 # 7. A helyi Python binárisok (pl. uvicorn) hozzáadása a rendszer útvonalához
