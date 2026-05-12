@@ -14,26 +14,30 @@ WORKDIR /app
 COPY README.md .
 COPY backend/ backend/
 
-# 4. Telepítés (a || true eltávolítva, hogy valóban lefusson)
+# 4. Létrehozunk egy "ál" frontend mappát, hogy a telepítő (hatchling) megnyugodjon
+RUN mkdir -p /app/frontend/dist && \
+    touch /app/frontend/dist/index.html
+
+# 5. Telepítés (a || true eltávolítva, hogy valóban lefusson és ne a hibás cache-t használja)
 RUN pip install --no-cache-dir ./backend && \
     pip install --no-cache-dir "ezdxf>=0.18.0"
 
-# 5. Jogosultságok átadása és felhasználóváltás
+# 6. Jogosultságok átadása és felhasználóváltás
 RUN chown -R oe:oe /app
 USER oe
 
-# 6. A helyi Python binárisok (pl. uvicorn) hozzáadása a rendszer útvonalához
+# 7. A helyi Python binárisok (pl. uvicorn) hozzáadása a rendszer útvonalához
 ENV PATH="/app/.local/bin:${PATH}"
 
-# 7. Python optimalizációk
+# 8. Python optimalizációk
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 EXPOSE 8000
 
-# 8. Egészségügyi ellenőrzés (Healthcheck)
+# 9. Egészségügyi ellenőrzés (Healthcheck)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')" || exit 1
 
-# 9. A szerver indítása közvetlenül a Python modulon keresztül
+# 10. A szerver indítása közvetlenül a Python modulon keresztül
 CMD ["python", "-m", "uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
