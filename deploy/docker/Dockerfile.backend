@@ -17,6 +17,8 @@ COPY backend/ backend/
 RUN chown -R oe:oe /app
 USER oe
 
+ENV PATH="/app/.local/bin:${PATH}"
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
